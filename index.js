@@ -53,6 +53,14 @@ app.get('/stats', async (req, res) => {
 
 });
 
+app.get('/movies/top-rated', async (req, res)=>{
+  const topRatedMovies = moviesCollection.find();
+  const cursor = topRatedMovies.sort({rating: -1}).limit(5)
+  const result = await cursor.toArray();
+  res.send(result)
+
+})
+
 app.delete('/movies/:id', async (req, res)=>{
   const id = req.params.id;
 
