@@ -33,6 +33,7 @@ try{
  const db = client.db('movies_db')
 
  const moviesCollection = db.collection('movies')
+ const usersCollection = db.collection('users');
 
 app.post('/movies', async(req, res)=>{
   const newMovies = req.body;
@@ -41,6 +42,16 @@ app.post('/movies', async(req, res)=>{
   console.log('result is',result)
   res.send(result)
 })
+
+// state sections api 
+app.get('/stats', async (req, res) => {
+   
+        
+        const totalMovies = await moviesCollection.estimatedDocumentCount();
+        const totalUsers = await usersCollection.estimatedDocumentCount();
+        res.send({ totalMovies, totalUsers }); 
+
+});
 
 app.delete('/movies/:id', async (req, res)=>{
   const id = req.params.id;
