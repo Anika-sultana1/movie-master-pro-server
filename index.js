@@ -35,6 +35,12 @@ try{
  const moviesCollection = db.collection('movies')
  const usersCollection = db.collection('users');
 
+app.get('/movies/recentlyAdded', async (req, res)=>{
+
+const cursor = moviesCollection.find().sort({addedAt: -1}).limit(6)
+const result = await cursor.toArray()
+res.send(result)
+})
 
 //  user related apis 
 app.post('/users', async (req, res)=>{
