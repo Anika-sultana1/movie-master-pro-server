@@ -35,6 +35,25 @@ try{
  const moviesCollection = db.collection('movies')
  const usersCollection = db.collection('users');
 
+
+//  user related apis 
+app.post('/users', async (req, res)=>{
+  const newUser = req.body;
+  const email = newUser.email;
+  const query = {email: email}
+  const existingUser = await usersCollection.findOne(query)
+
+  if(existingUser){
+res.send({message: 'user already exist. do not need to insert again'})
+  }
+  else{
+    const result = await usersCollection.insertOne(newUser)
+    res.send(result)
+  }
+
+})
+
+
 app.post('/movies', async(req, res)=>{
   const newMovies = req.body;
   console.log(newMovies)
@@ -81,7 +100,7 @@ app.get('/movies/:id',async (req, res)=>{
   console.log('id', id)
   const query = {_id: id}
   const result = await moviesCollection.findOne(query)
-  console.log('GET /movies result:', result); 
+  // console.log('GET /movies result:', result); 
  
   res.send(result)
 })
