@@ -60,7 +60,8 @@ res.send({message: 'user already exist. do not need to insert again'})
 })
 
 
-app.post('/movies', async(req, res)=>{
+// movie add 
+app.post('/movies/add', async(req, res)=>{
   const newMovies = req.body;
   console.log(newMovies)
   const result = await moviesCollection.insertOne(newMovies)
@@ -77,7 +78,8 @@ app.get('/stats', async (req, res) => {
         res.send({ totalMovies, totalUsers }); 
 
 });
-
+ 
+// top rated movies apis 
 app.get('/movies/top-rated', async (req, res)=>{
   const topRatedMovies = moviesCollection.find();
   const cursor = topRatedMovies.sort({rating: -1}).limit(5)
@@ -86,6 +88,23 @@ app.get('/movies/top-rated', async (req, res)=>{
 
 })
 
+app.patch('/movies/:id', async (req, res)=>{
+  const id = req.params.id;
+  const updatedMovie = req.body;
+  const query = {_id: new ObjectId(id)}
+  const update = {
+    $set:{
+      title: updatedMovie.title,
+      genre: updatedMovie.genre,
+      
+    }
+  }
+  const result = await moviesCollection.updateOne(query, update)
+res.send(result)
+}
+)
+
+// delete movies apis 
 app.delete('/movies/:id', async (req, res)=>{
   const id = req.params.id;
 
@@ -95,20 +114,39 @@ app.delete('/movies/:id', async (req, res)=>{
 
 })
 
+// all movies apis 
 app.get('/movies', async (req, res) => {
   const cursor =  moviesCollection.find();
   const result = await cursor.toArray();
   res.send(result);
 });
 
+// my collection
+app.get('/movies/my-collection', async (req, res)=>{
+ const email = req.query.email;
+ console.log('inside add movie',email)
+  const query = {addedBy:email}
+  const cursor = moviesCollection.find(query)
+  const result = await cursor.toArray();
+  res.send(result)
+
+})
+
+
+// movies apis 
 app.get('/movies/:id',async (req, res)=>{
   const id = req.params.id;
   console.log('id', id)
-  const query = {_id: id}
-  const result = await moviesCollection.findOne(query)
-  // console.log('GET /movies result:', result); 
- 
-  res.send(result)
+  if(ObjectId.isValid(id)){
+    const query1 = {_id: new ObjectId(id)}
+    const result1 = await moviesCollection.findOne(query1)
+  res.send(result1)
+  }
+  else{
+const query2 = {_id: id}
+  const result2 = await moviesCollection.findOne(query2)
+  res.send(result2)  
+}
 })
 
 await client.db('admin').command({ping:1})
