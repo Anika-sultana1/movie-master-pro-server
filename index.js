@@ -88,7 +88,7 @@ app.get('/movies/top-rated', async (req, res)=>{
 
 })
 
-app.patch('/movies/:id', async (req, res)=>{
+app.patch('/movies/update/:id', async (req, res)=>{
   const id = req.params.id;
   const updatedMovie = req.body;
   const query = {_id: new ObjectId(id)}
@@ -96,6 +96,13 @@ app.patch('/movies/:id', async (req, res)=>{
     $set:{
       title: updatedMovie.title,
       genre: updatedMovie.genre,
+      releaseYear: updatedMovie.releaseYear,
+      director:updatedMovie.director,
+      cast: updatedMovie.cast,
+      language: updatedMovie.language,
+      plotSummary: updatedMovie.plotSummary,
+      posterUrl: updatedMovie.posterUrl
+
       
     }
   }
