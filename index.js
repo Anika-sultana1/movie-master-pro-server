@@ -72,6 +72,20 @@ async function run() {
     const moviesCollection = db.collection('movies')
     const usersCollection = db.collection('users');
 
+const oldMovies = await moviesCollection.find({}).toArray();
+
+for (const m of oldMovies) {
+  if (typeof m._id === "string") {
+    const newDoc = { ...m, _id: new ObjectId() };
+    await moviesCollection.insertOne(newDoc);    
+    await moviesCollection.deleteOne({ _id: m._id }); 
+    console.log(`${m.title} _id converted to ObjectId`);
+  }
+}
+
+
+
+
     app.get('/movies/recentlyAdded', async (req, res) => {
 
       const cursor = moviesCollection.find().sort({ addedAt: -1 }).limit(6)
