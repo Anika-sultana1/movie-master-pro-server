@@ -44,7 +44,35 @@ const verifyFirebaseToken = async (req, res, next) => {
   }
 }
 
+const verifyJWTToken = async (req, res, next)=>{
 
+  const authorization = req.headers.authorization;
+  if(!authorization){
+    res.status(401).send({message: 'unauthorized access'})
+  }
+  const token = authorization.split(' ')[1]
+  
+  if(!token){
+res.status(401).send({message: 'unauthorized access'})
+  
+}
+  // verify 
+try{
+jwt.verify(token,process.env.JWT_SECRET, (err, decoded)=>{
+  if(err){
+    return res.status(401).send({message: 'unauthorized access'})
+  }
+  req.token_email= decoded.email;
+  next()
+})
+
+}
+catch{
+res.status(401).send({message: 'unauthorized access'})
+}
+
+
+}
 
 app.get('/', (req, res) => {
   res.send('hello world')
@@ -74,12 +102,12 @@ async function run() {
 
 const oldMovies = await moviesCollection.find({}).toArray();
 
-for (const m of oldMovies) {
-  if (typeof m._id === "string") {
-    const newDoc = { ...m, _id: new ObjectId() };
-    await moviesCollection.insertOne(newDoc);    
-    await moviesCollection.deleteOne({ _id: m._id }); 
-    console.log(`${m.title} _id converted to ObjectId`);
+for (const movies of oldMovies) {
+  if (typeof movies._id === "string") {
+    const newMovie = { ...movies, _id: new ObjectId() };
+    await moviesCollection.insertOne(newMovie);    
+    await moviesCollection.deleteOne({ _id: movies._id }); 
+ 
   }
 }
 
@@ -112,7 +140,7 @@ for (const m of oldMovies) {
 
 
     // movie add 
-    app.post('/movies/add', verifyFirebaseToken, async (req, res) => {
+    app.post('/movies/add', verifyFirebaseToken,verifyJWTToken, async (req, res) => {
       const newMovies = req.body;
       console.log(newMovies)
       const result = await moviesCollection.insertOne(newMovies)
@@ -139,7 +167,7 @@ for (const m of oldMovies) {
 
     })
 
-    app.patch('/movies/update/:id', verifyFirebaseToken, async (req, res) => {
+    app.patch('/movies/update/:id', verifyFirebaseToken,verifyJWTToken, async (req, res) => {
       const id = req.params.id;
       const updatedMovie = req.body;
       const query = { _id: new ObjectId(id) }
@@ -180,7 +208,7 @@ for (const m of oldMovies) {
     });
 
     // my collection
-    app.get('/movies/my-collection', verifyFirebaseToken, async (req, res) => {
+    app.get('/movies/my-collection', verifyFirebaseToken, verifyJWTToken, async (req, res) => {
 
       console.log('request er user', req.token_email)
       const email = req.query.email || req.token_email;
