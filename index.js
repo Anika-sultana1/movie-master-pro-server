@@ -99,7 +99,7 @@ async function run() {
 
     const moviesCollection = db.collection('movies')
     const usersCollection = db.collection('users');
-
+const watchlistCollection = db.collection('watchlist')
 const oldMovies = await moviesCollection.find({}).toArray();
 
 for (const movies of oldMovies) {
@@ -112,6 +112,63 @@ for (const movies of oldMovies) {
 }
 
 
+// watchlist post apis 
+app.post('/watchlist', verifyFirebaseToken, async (req, res)=>{
+  const {movieId} = req.body
+
+const email = req.token_email;
+const query = {email: email,movieId}
+const existedWatchlist = await watchlistCollection.findOne(query)
+if(existedWatchlist){
+  return res.send({message: 'Movie already exist'})
+}
+else{
+const result = await watchlistCollection.insertOne({
+  email,
+  movieId,
+  addedAt: new Date()
+})
+res.send(result)
+}
+
+})
+
+app.get('/watchlist', verifyFirebaseToken, async(req, res)=>{
+  const email = req.token_email;
+  const cursor =watchlistCollection.find({email})
+  const result = await cursor.toArray();
+  res.send(result)
+})
+app.delete('/watchlist/:id', verifyFirebaseToken, async (req, res)=>{
+  const id = req.params.id;
+  console.log('id', id)
+  const query = {_id: new ObjectId(id), email: req.token_email}
+  const result = await watchlistCollection.deleteOne(query)
+  res.send(result)
+})
+// genre or rating range filtering
+
+app.get('/movies', async (req, res)=>{
+  const {genre, minRatings, maxRatings} = req.query;
+  const filter = {}
+  if(genre){
+    const genreArray = genre.split(',')
+    filter.genre = {$in: genreArray}
+  }
+  
+  if(minRatings || maxRatings){
+filter.rating = {}
+if(minRatings){
+  filter.rating.$gte = parseFloat(minRatings)
+}
+if(maxRatings){
+  filter.rating.$lte = parseFloat(maxRatings)
+}
+  }
+  const cursor = moviesCollection.find(filter)
+  const result = await cursor.toArray();
+  res.send(result)
+})
 
 
     app.get('/movies/recentlyAdded', async (req, res) => {
