@@ -94,9 +94,8 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
 
-    if (!client.topology || !client.topology.isConnected()) {
   await client.connect();
-}
+
 
     const db = client.db('movies_db')
 
@@ -151,7 +150,7 @@ app.delete('/watchlist/:id', verifyFirebaseToken, async (req, res)=>{
 })
 // genre or rating range filtering
 
-app.get('/movies', async (req, res)=>{
+app.get('/movies/filter', async (req, res)=>{
   const {genre, minRatings, maxRatings} = req.query;
   const filter = {}
   if(genre){
