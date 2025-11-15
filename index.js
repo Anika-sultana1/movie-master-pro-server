@@ -94,7 +94,9 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
 
-    await client.connect();
+    if (!client.topology || !client.topology.isConnected()) {
+  await client.connect();
+}
 
     const db = client.db('movies_db')
 
