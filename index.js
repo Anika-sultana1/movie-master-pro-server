@@ -24,10 +24,8 @@ admin.initializeApp({
 
 
 const verifyFirebaseToken = async (req, res, next) => {
-
-  console.log(req)
   const authorization = req.headers.authorization;
-  console.log(authorization)
+
   if (!authorization) {
     res.status(401).send({ message: 'unauthorized access' })
   }
@@ -35,7 +33,7 @@ const verifyFirebaseToken = async (req, res, next) => {
   try {
 
     const decoded = await admin.auth().verifyIdToken(token)
-    console.log('inside decoded', decoded.email)
+    // console.log('inside decoded', decoded.email)
     req.token_email = decoded.email;
     next();
   }
@@ -94,7 +92,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
 
-  await client.connect();
+  // await client.connect();
 
 
     const db = client.db('movies_db')
@@ -102,16 +100,7 @@ async function run() {
     const moviesCollection = db.collection('movies')
     const usersCollection = db.collection('users');
 const watchlistCollection = db.collection('watchlist')
-const oldMovies = await moviesCollection.find({}).toArray();
 
-for (const movies of oldMovies) {
-  if (typeof movies._id === "string") {
-    const newMovie = { ...movies, _id: new ObjectId() };
-    await moviesCollection.insertOne(newMovie);    
-    await moviesCollection.deleteOne({ _id: movies._id }); 
- 
-  }
-}
 
 
 // watchlist post apis 
@@ -143,7 +132,7 @@ app.get('/watchlist', verifyFirebaseToken, async(req, res)=>{
 })
 app.delete('/watchlist/:id', verifyFirebaseToken, async (req, res)=>{
   const id = req.params.id;
-  console.log('id', id)
+
   const query = {_id: new ObjectId(id), email: req.token_email}
   const result = await watchlistCollection.deleteOne(query)
   res.send(result)
@@ -203,7 +192,7 @@ if(maxRatings){
       const newMovies = req.body;
       newMovies.addedBy = req.token_email
       newMovies.addedAt = new Date();
-    
+    console.log('newMovies', newMovies)
       const result = await moviesCollection.insertOne(newMovies)
     
       res.send(result)
@@ -271,9 +260,9 @@ if(maxRatings){
     // my collection
     app.get('/movies/my-collection', verifyFirebaseToken,  async (req, res) => {
 
-      console.log('request er user', req.token_email)
+    
       const email = req.query.email || req.token_email;
-      console.log('inside  movie', email)
+
       const query = { addedBy: email }
       const cursor = moviesCollection.find(query)
       const result = await cursor.toArray();
@@ -284,16 +273,13 @@ if(maxRatings){
     // movies apis 
     app.get('/movies/:id', async (req, res) => {
       const id = req.params.id;
-      console.log('id', id);
 
-      let query;
+
 
       if (ObjectId.isValid(id)) {
         query = { _id: new ObjectId(id) };
-      } else {
-
-        query = { _id: id };
       }
+
 
       const result = await moviesCollection.findOne(query);
       res.send(result);
@@ -301,7 +287,7 @@ if(maxRatings){
 
 
     // await client.db('admin').command({ ping: 1 })
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    // console.log("Pinged your deployment. You successfully connected to MongoDB!");
 
   }
 
@@ -313,5 +299,5 @@ if(maxRatings){
 run().catch(console.dir)
 
 app.listen(port, () => {
-  console.log(`smart server running on port ${port}`)
+  // console.log(`smart server running on port ${port}`)
 })
